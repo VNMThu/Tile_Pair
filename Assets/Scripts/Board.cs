@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
+using DG.Tweening;
 
 public sealed class Board : MonoBehaviour
 {
@@ -18,6 +20,8 @@ public sealed class Board : MonoBehaviour
 
     public void Awake() => Instance = this;
 
+    private const float TweenDuration = 0.25f;
+
     private void Start()
     {
         Tiles = new Tile[rows.Max(row => row.tiles.Length), rows.Length];
@@ -32,7 +36,7 @@ public sealed class Board : MonoBehaviour
                 tile.y = y;
                 
 
-                tile.Item = ItemDatabase.Items[Random.Range(0, ItemDatabase.Items.Length)];
+                tile.Item = ItemDatabase.Items[UnityEngine.Random.Range(0, ItemDatabase.Items.Length)];
 
                 Tiles[x, y] = tile;
             }
@@ -51,5 +55,46 @@ public sealed class Board : MonoBehaviour
 
         _selection.Clear();
     }
+
+    private bool CanPop()
+    {
+        for (var y = 0; y < Height; y++)
+        {
+            for (var x = 0; x < Width; x++)
+            {
+                if (Tiles[x, y].GetConnectedTiles().Count > 2) return true;
+            }
+        }
+        return false;
+    }
+
+    private async void Pop()
+    {
+        for (var y = 0; y < Height; y++)
+        {
+            for (var x = 0; x < Width; x++)
+            {
+                var tile = Tiles[x, y];
+
+                var connectedTiles = tile.GetConnectedTiles();
+
+                if (connectedTiles.Count < 3) continue;
+
+                var deflatSequence = DOTween.Sequence();
+                 foreach (var connectedTile in connectedTiles)
+                {
+                    
+                }
+
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (!Input.GetKeyDown(KeyCode.A)) return;
+        foreach (var connectedTile in Tiles[0, 0].GetConnectedTiles()) connectedTile.icon.transform.DOScale(1.25f, TweenDuration).Play();
+    }
+    
 
 }
