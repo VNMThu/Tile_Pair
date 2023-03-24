@@ -302,6 +302,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 1952446522931640168, guid: 36dcca3967a62d041a021060930b1388, type: 3}
+  icons:
+  - {fileID: 21300000, guid: 8300350d057fc4d10b71400cb5419b28, type: 3}
+  - {fileID: 21300000, guid: 68b135fae982d4f9d84110dbeb30b387, type: 3}
+  - {fileID: 21300000, guid: 0de435b8dc75448938438616105c219a, type: 3}
+  - {fileID: 21300000, guid: 2533958d9242d45309c5b5346c56cca5, type: 3}
+  - {fileID: 21300000, guid: a4daa23a64b3344f4b45963bddc26461, type: 3}
+  - {fileID: 21300000, guid: 3773e25d25e5545e98d62af62f5ca0b2, type: 3}
+  - {fileID: 21300000, guid: debfcc5c957104085b8d01dee27acd96, type: 3}
+  - {fileID: 21300000, guid: 09c7915f09843440da053114b12a0ca0, type: 3}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
