@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8406785136568860090}
   - component: {fileID: 3276188336464240321}
   m_Layer: 0
-  m_Name: TripleM_Play_MainBlock(Clone)
+  m_Name: TripleM_Play_MainBlock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 2533958d9242d45309c5b5346c56cca5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0e65fd2fa4b0e624bb185944b712047a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -128,3 +128,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51dc3b94e2e48f2408e8ad3cd523ef8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  icons:
+  - {fileID: 21300000, guid: 8300350d057fc4d10b71400cb5419b28, type: 3}
+  - {fileID: 21300000, guid: 68b135fae982d4f9d84110dbeb30b387, type: 3}
+  - {fileID: 21300000, guid: 0de435b8dc75448938438616105c219a, type: 3}
+  - {fileID: 21300000, guid: 2533958d9242d45309c5b5346c56cca5, type: 3}
+  - {fileID: 21300000, guid: a4daa23a64b3344f4b45963bddc26461, type: 3}
+  - {fileID: 21300000, guid: 3773e25d25e5545e98d62af62f5ca0b2, type: 3}
+  - {fileID: 21300000, guid: debfcc5c957104085b8d01dee27acd96, type: 3}
+  - {fileID: 21300000, guid: 09c7915f09843440da053114b12a0ca0, type: 3}
+  tilePrefab: {fileID: 1952446522931640168}
