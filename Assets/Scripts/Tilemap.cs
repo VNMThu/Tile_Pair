@@ -15,7 +15,9 @@ public class Tilemap : MonoBehaviour
     public GameObject tilePrefab;
     private readonly List<Tile> _selection = new List<Tile>();
     List<GameObject> selectedObjects = new List<GameObject>();
-    string spriteName = "TripleM_PlayObject1";
+    List<GameObject> objectsToDestroy = new List<GameObject>();
+    //string spriteName = "TripleM_PlayObject1";
+    string spriteName;
 
     // Start is called before the first frame update
     void Start()
@@ -25,7 +27,7 @@ public class Tilemap : MonoBehaviour
         {
             for (int j= 0; j<row; j ++)
             {
-                GameObject go = Instantiate(tilePrefab, new Vector3(i*size - (size*col)/2f + size/2, j*size - (size*row)/2f + size/2, 0), Quaternion.identity);
+                GameObject go = Instantiate(tilePrefab, new Vector3(i*size - (size*col)/2f + size/2, j*size - (size*row)/2f + size/2, 0), Quaternion.identity, this.transform);
                 go.name = i + "-" + j;
                 //Sprite icon = icons[Random.Range(0, icons.Length)];
                 //go.GetComponent<SpriteRenderer>().sprite = icon;
@@ -48,7 +50,7 @@ public class Tilemap : MonoBehaviour
 
                 //Debug.Log(hit.collider.gameObject.name);
 
-                //Vector3 position = transform.position;
+                Vector3 position = transform.position;
                 GameObject selectedObject = hit.collider.gameObject;
                 selectedObjects.Add(selectedObject);
 
@@ -56,13 +58,28 @@ public class Tilemap : MonoBehaviour
 
             }
 
-            List<GameObject> objectsToDestroy = new List<GameObject>();
-            int destroyCount = 0;
+            if (selectedObjects.Count > 0)
+            {
+                SpriteRenderer spriteRenderer = selectedObjects[0].GetComponentsInChildren<SpriteRenderer>()[1];
 
+                if (spriteRenderer != null)
+                {
+                    spriteName = spriteRenderer.sprite.name;
+                }
+            }
+
+            
+            int destroyCount = 0;
             foreach (GameObject obj in selectedObjects)
             {
-                if (obj.GetComponent<SpriteRenderer>().sprite.name == spriteName)
+                if (obj.GetComponentsInChildren<SpriteRenderer>()[1].sprite.name == spriteName)
                 {
+                    //List<string> destroyedObjectPostion = new List<string>();
+                    //for (int i=0; i<3; i++)
+                    //{
+                    //    destroyedObjectPostion.Add(objectsToDestroy[i].name);
+                    //}
+                    //Debug.Log("Destroyed objects: " + string.Join(", ", destroyedObjectPostion.ToArray()));
                     objectsToDestroy.Add(obj);
                     destroyCount++;
                 }
@@ -70,17 +87,12 @@ public class Tilemap : MonoBehaviour
 
             if (destroyCount == 3)
             {
-                //foreach (GameObject obj in objectsToDestroy)
-                //{
-                //    obj.SetActive(false);
-                //}
-                //objectsToDestroy.RemoveAll(obj => !obj.activeSelf);
-
                 foreach (GameObject obj in objectsToDestroy)
                 {
                     Destroy(obj);
                 }
             }
+
 
         }
         if (selectedObjects.Count >= 3)
@@ -91,13 +103,12 @@ public class Tilemap : MonoBehaviour
                 selectedObjectNames.Add(selectedObjects[i].name);
             }
             Debug.Log("Selected objects: " + string.Join(", ", selectedObjectNames.ToArray()));
-            //DestroyGameObject();
             selectedObjects.Clear();
            
         }
-        
-    }
+
         
 
+    }
 
 }
