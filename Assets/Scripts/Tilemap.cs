@@ -35,25 +35,17 @@ public class Tilemap : MonoBehaviour
                 tilemap[j, i] = tile;
             }
         }
-
-        
     }
 
     // Update is called once per frame
     void Update()
     {
-
         if (Input.GetMouseButtonDown(0))
         {
-            
-            //Debug.Log("Touch Began");
             RaycastHit hit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit))
             {
-
-                //Debug.Log(hit.collider.gameObject.name);
-
                 //Vector3 position = transform.position;
                 GameObject selectedObject = hit.collider.gameObject;
                 if (!selectedObjects.Contains(selectedObject))
@@ -102,17 +94,17 @@ public class Tilemap : MonoBehaviour
                 }
                 //selectedObjects.Add(selectedObject);
                 //Debug.Log("Selected object: " + selectedObject.name);
-
-            }
-            if (selectedObjects.Count > 0)
-            {
-                SpriteRenderer spriteRenderer = selectedObjects[0].GetComponentsInChildren<SpriteRenderer>()[1];
-
-                if (spriteRenderer != null)
+                if (selectedObjects.Count > 0)
                 {
-                    spriteName = spriteRenderer.sprite.name;
+                    SpriteRenderer spriteRenderer = selectedObjects[0].GetComponentsInChildren<SpriteRenderer>()[1];
+
+                    if (spriteRenderer != null)
+                    {
+                        spriteName = spriteRenderer.sprite.name;
+                    }
                 }
             }
+            
              
         }
         if (selectedObjects.Count >= 3)
@@ -125,29 +117,6 @@ public class Tilemap : MonoBehaviour
             Debug.Log("Selected objects: " + string.Join(", ", selectedObjectNames.ToArray()));
             selectedObjects.Clear();
            
-        }
-        
-        for (int x = 0; x < col; x++)
-        {
-            for (int y = 1; y <row; y++)
-            {
-                if (tilemap[y, x] != null && tilemap[y-1, x] == null)
-                {
-                    int currentY = y;
-                    while (currentY > 0 && tilemap[currentY -1, x] == null)
-                    {
-                        currentY--;
-                    }
-                    //tilemap[currentY, x] = tilemap[y, x];
-                    //tilemap[y, x] = null;
-                    tilemap[currentY, x] = tilemap[y, x];
-                    tilemap[y, x] = null;
-                    tilemap[currentY, x].SetPosition(x, currentY);
-                    Vector3 pos = tilemap[currentY, x].transform.position;
-                    pos.y = currentY * size - (size * row) / 2f + size / 2;
-                    tilemap[currentY, x].transform.position = pos;
-                }
-            }
         }
 
         for (int x = 0; x < col; x++)
