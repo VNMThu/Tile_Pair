@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-
+using DG.Tweening;
 
 
 public class Tilemap : MonoBehaviour
@@ -11,6 +11,9 @@ public class Tilemap : MonoBehaviour
     int row = 10;
     int col = 6;
     string spriteName;
+    public float increaseValue = 0.01f;
+    public float increaseDuration = 0.001f;
+    bool isDifferent = false;
 
     public IconInfo[] iconInfoList;
     public Tile[,] tilemap;
@@ -18,7 +21,6 @@ public class Tilemap : MonoBehaviour
 
     List<GameObject> selectedObjects = new List<GameObject>();
     List<Vector2Int> destroyedPositions = new List<Vector2Int>();
-
 
     // Start is called before the first frame update
     void Start()
@@ -40,25 +42,18 @@ public class Tilemap : MonoBehaviour
                 if (!selectedObjects.Contains(selectedObject))
                 {
                     selectedObjects.Add(selectedObject);
+                    selectedObject.GetComponent<Tile>().IncreaseScale(increaseValue, increaseDuration);
                     if (selectedObjects.Count == 3)
                     {
                         HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(selectedObjects);
-                        if (uniqueObjects.Count == 3)
+                        if (uniqueObjects.Count == 3 )
                         {
                             DestroyObject();
                             selectedObjects.Clear();
                         }
-                        else
-                        {
-                            selectedObjects.Remove(selectedObject);
-                        }
                     }
                 }
-
-
             }
-
-
         }
         if (selectedObjects.Count >= 3)
         {
@@ -74,7 +69,6 @@ public class Tilemap : MonoBehaviour
         DropTile();
 
     }
-
 
     void DropTile()
     {
@@ -144,8 +138,46 @@ public class Tilemap : MonoBehaviour
             }
         }
     }
+    
+    IEnumerator ScaleAndDestroyObjects(List<GameObject> objectsToScaleAndDestroy)
+    {
+        foreach (GameObject obj in objectsToScaleAndDestroy)
+        {
+            Vector3 originalScale = obj.transform.localScale;
+            Vector3 targetScale = originalScale * 1.5f;
+            float elapsedTime = 0;
+            float duration = 0.1f;
+            while (elapsedTime < duration)
+            {
+                obj.transform.localScale = Vector3.Lerp(originalScale, targetScale, (elapsedTime / duration));
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+            obj.transform.localScale = targetScale;
+        }
+
+        yield return new WaitForSeconds(0.1f);
+
+        foreach (GameObject obj in objectsToScaleAndDestroy)
+        {
+            Destroy(obj);
+        }
+
+        foreach (GameObject obj in objectsToScaleAndDestroy)
+        {
+            Tile tile = obj.GetComponent<Tile>();
+            if (tile != null)
+            {
+                Vector2Int position = new Vector2Int(tile.x, tile.y);
+                Debug.Log("Object destroyed at position: " + position);
+                destroyedPositions.Add(position);
+            }
+        }
+    }
+
     void DestroyObject()
     {
+        
         int selectedIconIndex = -1;
         if (selectedObjects.Count > 0)
         {
@@ -155,34 +187,59 @@ public class Tilemap : MonoBehaviour
                 selectedIconIndex = tile.selectedIcon.index;
             }
         }
-        int destroyCount = 0;
-        List<Vector2Int> positiontoDestroy = new List<Vector2Int>();
-        List<GameObject> objectsToDestroy = new List<GameObject>();
+
+        List<GameObject> objectsToScaleAndDestroy = new List<GameObject>();
+        List<Vector3> originalScales = new List<Vector3>();
+        foreach (GameObject obj in objectsToScaleAndDestroy)
+        {
+            originalScales.Add(obj.transform.localScale);
+        }
         foreach (GameObject obj in selectedObjects)
         {
             Tile tile = obj.GetComponent<Tile>();
             if (tile != null && tile.selectedIcon.index == selectedIconIndex)
             {
-                Vector2Int position = new Vector2Int(tile.x, tile.y);
-                positiontoDestroy.Add(position);
-                objectsToDestroy.Add(obj);
-                destroyCount++;
+                objectsToScaleAndDestroy.Add(obj);
             }
         }
 
-        if (destroyCount == 3)
+        if (objectsToScaleAndDestroy.Count == 3)
         {
-            foreach (GameObject obj in objectsToDestroy)
+            StartCoroutine(ScaleAndDestroyObjects(objectsToScaleAndDestroy));
+        }
+        foreach (GameObject obj in objectsToScaleAndDestroy)
+        {
+            Tile tile = obj.GetComponent<Tile>();
+            if (tile != null && tile.selectedIcon.index != selectedIconIndex)
             {
-                Destroy(obj);
-            }
-
-            foreach (Vector2Int position in positiontoDestroy)
-            {
-                Debug.Log("Object destroyed at position: " + position);
-                destroyedPositions.Add(position);
+                isDifferent = true;
+                break;
             }
         }
+        if (isDifferent)
+        {
+            foreach (GameObject obj in objectsToScaleAndDestroy)
+            {
+                StartCoroutine(ScaleDownAndReset(obj, originalScales[objectsToScaleAndDestroy.IndexOf(obj)]));
+            }
+        }
+    }
+    
+    IEnumerator ScaleDownAndReset(GameObject obj, Vector3 originalScale)
+    {
+        float duration = 0.1f;
+        float timer = 0.0f;
+
+        Vector3 targetScale = originalScale;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            obj.transform.localScale = Vector3.Lerp(obj.transform.localScale, targetScale, timer / duration);
+            yield return null;
+        }
+
+        obj.transform.localScale = originalScale;
     }
 
 }
