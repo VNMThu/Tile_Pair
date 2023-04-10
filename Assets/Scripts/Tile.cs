@@ -15,14 +15,13 @@ public class Tile : MonoBehaviour
 {
     public IconInfo[] icons;
     public IconInfo selectedIcon;
-    //public Vector3 initialScale;
-    //public Vector2Int position;
     private int selectedIconIndex;
 
     public int x;
     public int y;
 
     public bool isSelected = false;
+    public int index;
 
 
     //Start is called before the first frame update
@@ -52,7 +51,7 @@ public class Tile : MonoBehaviour
         selectedIconIndex = index;
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].sprite = selectedIcon.sprite;
     }
-
+    
     internal void IncreaseScale(float inscreaseValue, float increaseDuration)
     {
         //transform.DOScale(transform.localScale + new Vector3(inscreaseValue, inscreaseValue, inscreaseValue), increaseDuration);
@@ -70,7 +69,7 @@ public class Tile : MonoBehaviour
                 }
             });
     }
-
+    
 }
 
 
