@@ -49,6 +49,7 @@ public class TileBoard : MonoBehaviour
                         if (uniqueObjects.Count == 3 )
                         {
                             DestroyObject();
+                            ResetLayerOrder();
                             selectedObjects.Clear();
                         }
                     }
@@ -70,66 +71,6 @@ public class TileBoard : MonoBehaviour
 
     }
 
-    
-    void DropTile()
-    {
-        for (int x = 0; x < col; x++)
-        {
-            int emptyY = -1;
-            for (int y = 0; y < row; y++)
-            {
-                if (tilemap[y, x] == null)
-                {
-                    if (emptyY == -1)
-                    {
-                        emptyY = y;
-                    }
-                }
-                else
-                {
-                    if (emptyY != -1 && tilemap[emptyY, x] != null)
-                    {
-                        tilemap[emptyY, x] = tilemap[y, x];
-                        tilemap[y, x] = null;
-                        tilemap[emptyY, x].SetPosition(x, emptyY);
-                        Vector3 pos = tilemap[emptyY, x].transform.position;
-                        pos.y = emptyY * size - (size * row) / 2f + size / 2;
-                        tilemap[emptyY, x].transform.position = pos;
-                        tilemap[emptyY, x].transform.SetSiblingIndex(tilemap[y, x].transform.GetSiblingIndex());
-                        emptyY++;
-                    }
-                }
-            }
-            if (emptyY != -1)
-            {
-                GameObject newtile = Instantiate(tilePrefab, transform);
-                newtile.GetComponent<Tile>().SetPosition(x, emptyY);
-                tilemap[emptyY, x] = newtile.GetComponent<Tile>();
-                newtile.name = x + "-" + emptyY;
-                Vector3 pos = newtile.transform.position;
-                pos.x = x * size - (size * col) / 2f + size / 2;
-                pos.y = emptyY * size - (size * row) / 2f + size / 2;
-                pos.z = 0;
-                newtile.transform.position = pos;
-                int newOrder = tilemap[emptyY - 1, x].GetComponent<SpriteRenderer>().sortingOrder;
-                int newOrderID = tilemap[emptyY - 1, x].GetComponent<SpriteRenderer>().sortingLayerID;
-                newtile.GetComponent<SpriteRenderer>().sortingOrder = newOrder;
-                if (emptyY == row - 1)
-                {
-                    int siblingIndex = tilemap[emptyY - 1, x].transform.GetSiblingIndex() + 1;
-                    for (int i = emptyY - 1; i >= 0; i--)
-                    {
-                        if (tilemap[i, x] != null)
-                        {
-                            tilemap[i, x].transform.SetSiblingIndex(siblingIndex);
-                            siblingIndex++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
     /*
     void DropTile()
     {
@@ -155,8 +96,71 @@ public class TileBoard : MonoBehaviour
                         Vector3 pos = tilemap[emptyY, x].transform.position;
                         pos.y = emptyY * size - (size * row) / 2f + size / 2;
                         tilemap[emptyY, x].transform.position = pos;
-                        tilemap[emptyY, x].transform.SetSiblingIndex(tilemap[y, x].transform.GetSiblingIndex());
                         emptyY++;
+                        tilemap[emptyY - 1, x].name = x + "-" + (emptyY - 1);
+                    }
+                }
+            }
+            if (emptyY != -1)
+            {
+                GameObject newtile = Instantiate(tilePrefab, transform);
+                newtile.GetComponent<Tile>().SetPosition(x, emptyY);
+                tilemap[emptyY, x] = newtile.GetComponent<Tile>();
+                newtile.name = x + "-" + emptyY;
+                Vector3 pos = newtile.transform.position;
+                pos.x = x * size - (size * col) / 2f + size / 2;
+                pos.y = emptyY * size - (size * row) / 2f + size / 2;
+                pos.z = 0;
+                newtile.transform.position = pos;
+            }
+        }
+    }
+    
+    */
+
+    void DropTile()
+    {
+        for (int x = 0; x < col; x++)
+        {
+            int emptyY = -1;
+            for (int y = 0; y < row; y++)
+            {
+                if (tilemap[y, x] == null)
+                {
+                    if (emptyY == -1)
+                    {
+                        emptyY = y;
+                    }
+                }
+                else
+                {
+                    if (emptyY != -1)
+                    {
+                        tilemap[emptyY, x] = tilemap[y, x];
+                        tilemap[y, x] = null;
+                        tilemap[emptyY, x].SetPosition(x, emptyY);
+                        Vector3 pos = tilemap[emptyY, x].transform.position;
+                        pos.y = emptyY * size - (size * row) / 2f + size / 2;
+                        tilemap[emptyY, x].transform.position = pos;
+                        emptyY++;
+                        tilemap[emptyY - 1, x].name = x + "-" + (emptyY - 1);
+
+                        // Set sortingOrder for the tile renderer
+                        Renderer tileRenderer = tilemap[emptyY - 1, x].GetComponent<Renderer>();
+                        if (tileRenderer != null)
+                        {
+                            tileRenderer.sortingOrder = (row - emptyY) * col + x;
+                        }
+
+                        // Set sortingOrder for all icon renderers
+                        Renderer[] iconRenderers = tilemap[emptyY - 1, x].GetComponentsInChildren<Renderer>();
+                        foreach (Renderer iconRenderer in iconRenderers)
+                        {
+                            if (iconRenderer != tileRenderer)
+                            {
+                                iconRenderer.sortingOrder = tileRenderer.sortingOrder;
+                            }
+                        }
                     }
                 }
             }
@@ -172,14 +176,32 @@ public class TileBoard : MonoBehaviour
                 pos.z = 0;
                 newtile.transform.position = pos;
 
-                // Set order in layer of the new tile to be the same as the tile at the new position
-                int newOrder = tilemap[emptyY - 1, x].GetComponent<SpriteRenderer>().sortingOrder;
-                newtile.GetComponent<SpriteRenderer>().sortingOrder = newOrder;
+                // Set sortingOrder for the new tile renderer
+                Renderer newTileRenderer = newtile.GetComponent<Renderer>();
+                if (newTileRenderer != null)
+                {
+                    newTileRenderer.sortingOrder = (row - emptyY) * col + x;
+                }
+
+                // Set sortingOrder for all icon renderers in the new tile
+                Renderer renderer = newtile.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.sortingLayerID = SortingLayer.NameToID("Normal");
+                    renderer.sortingOrder = (row - emptyY - 1) * col + x;
+                }
+
+                Renderer[] iconRenderers = newtile.GetComponentsInChildren<Renderer>();
+                foreach (Renderer ren in iconRenderers)
+                {
+                    ren.sortingLayerID = SortingLayer.NameToID("Normal");
+                    ren.sortingOrder = (row - emptyY - 1) * col + x;
+                }
             }
         }
     }
 
-    */
+
     void CreateTile()
     {
         tilemap = new Tile[row, col];
@@ -309,6 +331,27 @@ public class TileBoard : MonoBehaviour
             }
         }
     }
+    void ResetLayerOrder()
+    {
+        for (int x = 0; x < col; x++)
+        {
+            for (int y = row - 1; y >= 0; y--)
+            {
+                if (tilemap[y, x] != null)
+                {
+                    tilemap[y, x].transform.SetSiblingIndex(y * col + x);
+                    tilemap[y, x].GetComponent<SpriteRenderer>().sortingOrder = (row - y - 1) * col + x;
+                    tilemap[y, x].GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID(sortingLayerName);
+                    foreach (Transform child in tilemap[y, x].transform)
+                    {
+                        child.GetComponent<SpriteRenderer>().sortingOrder = tilemap[y, x].GetComponent<SpriteRenderer>().sortingOrder + 1;
+                    }
+                }
+            }
+        }
+    }
 }
+
+
 
 
