@@ -13,6 +13,12 @@ public class IconInfo
 
 public class Tile : MonoBehaviour
 {
+    [SerializeField] public SpriteRenderer iconRenderer;
+    //[SerializeField] private SpriteRenderer tileRenderer;
+
+    private int originalSortingOrder;
+    private string originalSortingLayerName;
+
     public IconInfo[] icons;
     public IconInfo selectedIcon;
     private int selectedIconIndex;
@@ -45,14 +51,14 @@ public class Tile : MonoBehaviour
         this.y = y;
     }
 
-    internal void SetIcon(IconInfo icon, int index)
+    public void SetIcon(IconInfo icon, int index)
     {
         selectedIcon = icon;
         selectedIconIndex = index;
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].sprite = selectedIcon.sprite;
     }
     
-    internal void IncreaseScale(float inscreaseValue, float increaseDuration)
+    public void IncreaseScale(float inscreaseValue, float increaseDuration)
     {
         //transform.DOScale(transform.localScale + new Vector3(inscreaseValue, inscreaseValue, inscreaseValue), increaseDuration);
         if (transform == null)
@@ -65,11 +71,24 @@ public class Tile : MonoBehaviour
             {
                 if (transform != null)
                 {
-                    transform.DOScale(Vector3.one*0.5f, increaseDuration);
+                    transform.DOScale(Vector3.one*0.42f, increaseDuration);
                 }
             });
     }
-    
+
+    public GameObject GetAboveTile()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, Vector3.up, out hit, 1f))
+        {
+            Tile tile = hit.collider.gameObject.GetComponent<Tile>();
+            if (tile != null)
+            {
+                return hit.collider.gameObject;
+            }
+        }
+        return null;
+    }
 }
 
 
