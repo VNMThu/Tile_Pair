@@ -50,7 +50,7 @@ public class TileBoard : MonoBehaviour
                     if (selectedObjects.Count == 3)
                     {
                         HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(selectedObjects);
-                        if (uniqueObjects.Count == 3 )
+                        if (uniqueObjects.Count == 3)
                         {
                             DestroyObject();
                             selectedObjects.Clear();
@@ -85,6 +85,7 @@ public class TileBoard : MonoBehaviour
 
     void DropTile()
     {
+        float dropSpeed = 5.0f;
         for (int x = 0; x < col; x++)
         {
             int emptyY = -1;
@@ -103,6 +104,7 @@ public class TileBoard : MonoBehaviour
                     {
                         tilemap[emptyY, x] = tilemap[y, x];
                         tilemap[y, x] = null;
+                        StartCoroutine(DropTileCoroutine(tilemap[emptyY, x], x, emptyY, dropSpeed));
                         tilemap[emptyY, x].SetPosition(x, emptyY);
                         Vector3 pos = tilemap[emptyY, x].transform.position;
                         pos.y = emptyY * size - (size * row) / 2f + size / 2;
@@ -132,6 +134,7 @@ public class TileBoard : MonoBehaviour
                 GameObject newtile = Instantiate(tilePrefab, transform);
                 newtile.GetComponent<Tile>().SetPosition(x, emptyY);
                 tilemap[emptyY, x] = newtile.GetComponent<Tile>();
+                StartCoroutine(DropTileCoroutine(tilemap[emptyY, x], x, emptyY, dropSpeed));
                 newtile.name = x + "-" + emptyY;
                 Vector3 pos = newtile.transform.position;
                 pos.x = x * size - (size * col) / 2f + size / 2;
@@ -162,7 +165,19 @@ public class TileBoard : MonoBehaviour
         }
     }
 
-
+    IEnumerator DropTileCoroutine(Tile tile, int x, int y, float dropSpeed)
+    {
+        float startY = tile.transform.position.y;
+        float endY = y * size - (size * row) / 2f + size / 2;
+        float t = 0.0f;
+        while (t < 1.0f)
+        {
+            t += Time.deltaTime * dropSpeed;
+            tile.transform.position = new Vector3(x * size - (size * col) / 2f + size / 2, Mathf.Lerp(startY, endY, t), 0.0f);
+            yield return null;
+        }
+        tile.SetPosition(x, y);
+    }
     void CreateTile()
     {
         tilemap = new Tile[row, col];
@@ -192,7 +207,7 @@ public class TileBoard : MonoBehaviour
                     renderer.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
                     renderer.sortingOrder = (row - j - 1) * col + i;
                 }
-                
+
                 Renderer[] iconRenderers = go.GetComponentsInChildren<Renderer>();
                 foreach (Renderer ren in iconRenderers)
                 {
@@ -202,10 +217,10 @@ public class TileBoard : MonoBehaviour
             }
         }
     }
-    
+
     void DestroyObject()
     {
-        
+
         int selectedIconIndex = -1;
         if (selectedObjects.Count > 0)
         {
@@ -251,7 +266,7 @@ public class TileBoard : MonoBehaviour
             StartCoroutine(ScaleAndDestroyObjects(objectsToScaleAndDestroy));
         }
     }
-    
+
     IEnumerator ScaleDownAndReset(GameObject obj, Vector3 originalScale)
     {
         float duration = 0.1f;
@@ -269,10 +284,10 @@ public class TileBoard : MonoBehaviour
         obj.transform.localScale = originalScale;
     }
 
-    
+
     IEnumerator ScaleAndDestroyObjects(List<GameObject> objectsToScaleAndDestroy)
     {
-        
+
         foreach (GameObject obj in objectsToScaleAndDestroy)
         {
             Vector3 originalScale = obj.transform.localScale;
