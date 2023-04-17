@@ -23,6 +23,8 @@ public class Tile : MonoBehaviour
     public IconInfo selectedIcon;
     private int selectedIconIndex;
 
+    public Vector3 originalScale;
+
     public int x;
     public int y;
 
@@ -33,7 +35,7 @@ public class Tile : MonoBehaviour
     //Start is called before the first frame update
     void Start()
     {
-
+        originalScale = transform.localScale;
         selectedIcon = icons[Random.Range(0, icons.Length)];
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].sprite = selectedIcon.sprite;
         selectedIconIndex = Random.Range(0, icons.Length);
@@ -89,6 +91,36 @@ public class Tile : MonoBehaviour
         }
         return null;
     }
+
+    public void DecreaseScale(float scaleValue, float duration)
+    {
+        // Calculate the target scale
+        Vector3 targetScale = originalScale / scaleValue;
+
+        // Start decreasing the scale gradually
+        StartCoroutine(GradualScale(targetScale, duration));
+    }
+
+    IEnumerator GradualScale(Vector3 targetScale, float duration)
+    {
+        // Calculate the step size for each frame
+        float step = (originalScale.magnitude / targetScale.magnitude - 1f) / duration;
+
+        // Decrease the scale gradually
+        while (transform.localScale.magnitude > targetScale.magnitude)
+        {
+            transform.localScale -= Vector3.one * step * Time.deltaTime;
+
+            // Make sure the scale doesn't go below the target scale
+            if (transform.localScale.magnitude < targetScale.magnitude)
+            {
+                transform.localScale = targetScale;
+            }
+
+            yield return null;
+        }
+    }
+
 }
 
 
