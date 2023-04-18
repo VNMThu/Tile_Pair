@@ -12,7 +12,7 @@ public class TileBoard : MonoBehaviour
     int col = 6;
     float dropSpeed = 0.01f;
     string spriteName;
-    public float increaseValue = 0.01f;
+    public float increaseValue = 0.1f;
     public float increaseDuration = 4f;
     public float decreaseValue = 0.001f;
     public float decreaseDuration = 4f;
@@ -39,7 +39,7 @@ public class TileBoard : MonoBehaviour
 
     // Update is called once per frame
 
-    void Update()
+    private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -52,15 +52,6 @@ public class TileBoard : MonoBehaviour
                 {
                     selectedObjects.Add(selectedObject);
                     selectedObject.GetComponent<Tile>().IncreaseScale(increaseValue, increaseDuration);
-                    if (selectedObjects.Count == 3)
-                    {
-                        HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(selectedObjects);
-                        if (uniqueObjects.Count == 3)
-                        {
-                            DestroyObject();
-                        }
-                        selectedObjects.Clear();
-                    }
                 }
                 else
                 {
@@ -73,31 +64,43 @@ public class TileBoard : MonoBehaviour
                         ren.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
                     }
                 }
-                if (selectedObjects.Count > 0)
+                if (selectedObjects.Count == 3)
                 {
-                    selectedObject.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
-                    Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
-                    foreach (Renderer ren in iconRenderers)
+                    HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(selectedObjects);
+                    if (uniqueObjects.Count == 3)
                     {
-                        ren.sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
-                        ren.sortingOrder += 1;
+                        DestroyObject();
+                        selectedObjects.Clear();
+                    }
+                    else
+                    {
+                        selectedObjects.Remove(selectedObject);
+                        selectedObject.GetComponent<Tile>().DecreaseScale(decreaseValue, decreaseDuration);
+                        selectedObject.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
+                        Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
+                        foreach (Renderer ren in iconRenderers)
+                        {
+                            ren.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (GameObject obj in selectedObjects)
+                    {
+                        obj.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
+                        Renderer[] iconRenderers = obj.GetComponentsInChildren<Renderer>();
+                        foreach (Renderer ren in iconRenderers)
+                        {
+                            ren.sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
+                            ren.sortingOrder += 1;
+                        }
                     }
                 }
             }
         }
-        if (selectedObjects.Count == 3)
-        {
-            HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(selectedObjects);
-            if (uniqueObjects.Count == 3)
-            {
-                DestroyObject();
-            }
-            selectedObjects.Clear();
-        }
         DropTile();
     }
-
-
 
     void DropTile()
     {
@@ -177,6 +180,7 @@ public class TileBoard : MonoBehaviour
                     ren.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
                     ren.sortingOrder = (row - emptyY - 1) * col + x;
                 }
+                
             }
         }
     }
@@ -193,6 +197,7 @@ public class TileBoard : MonoBehaviour
             yield return null;
         }
         tile.SetPosition(x, y);
+
     }
     void CreateTile()
     {
@@ -236,15 +241,46 @@ public class TileBoard : MonoBehaviour
 
     void DestroyObject()
     {
-
+        bool isDifferent = false;
+        int firstIndex = -1;
         int selectedIconIndex = -1;
-        if (selectedObjects.Count > 0)
+        foreach (GameObject obj in selectedObjects)
         {
-            Tile tile = selectedObjects[0].GetComponent<Tile>();
+            Tile tile = obj.GetComponent<Tile>();
             if (tile != null)
             {
                 selectedIconIndex = tile.selectedIcon.index;
+                if (firstIndex == -1)
+                {
+                    firstIndex = selectedIconIndex;
+                }
+                else if (selectedIconIndex != firstIndex)
+                {
+                    isDifferent = true;
+                    break;
+                }
             }
+        }
+
+
+        if (isDifferent)
+        {
+            foreach (GameObject obj in selectedObjects)
+            {
+                Tile tile = obj.GetComponent<Tile>();
+                if (tile != null)
+                {
+                    obj.transform.localScale = tile.originalScale;
+
+                    SpriteRenderer spriteRenderer = obj.GetComponent<SpriteRenderer>();
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.sortingOrder = tile.initialSortingOrder;
+                    }
+                    tile.GetComponent<Renderer>().sortingLayerName = "Normal";
+                }
+            }
+            selectedObjects.Clear();
         }
 
         //List<GameObject> objectsToScaleAndDestroy = new List<GameObject>();
@@ -267,21 +303,22 @@ public class TileBoard : MonoBehaviour
             }
         }
 
-        foreach (GameObject obj in objectsToScaleAndDestroy)
-        {
-            Tile tile = obj.GetComponent<Tile>();
-            if (tile != null)
-            {
-                Vector3 dropPosition = new Vector3(tile.transform.position.x, tile.transform.position.y - 1f, tile.transform.position.z);
-                dropPositions.Add(dropPosition);
-            }
-        }
-
         if (objectsToScaleAndDestroy.Count == 3)
         {
+            foreach (GameObject obj in objectsToScaleAndDestroy)
+            {
+                Tile tile = obj.GetComponent<Tile>();
+                if (tile != null)
+                {
+                    Vector3 dropPosition = new Vector3(tile.transform.position.x, tile.transform.position.y - 1f, tile.transform.position.z);
+                    dropPositions.Add(dropPosition);
+                }
+
+            }
             StartCoroutine(ScaleAndDestroyObjects(objectsToScaleAndDestroy));
         }
     }
+    
 
     IEnumerator ScaleDownAndReset(GameObject obj, Vector3 originalScale)
     {

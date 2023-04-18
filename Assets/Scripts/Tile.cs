@@ -18,12 +18,14 @@ public class Tile : MonoBehaviour
 
     private int originalSortingOrder;
     private string originalSortingLayerName;
+    public int initialSortingOrder;
 
     public IconInfo[] icons;
     public IconInfo selectedIcon;
     private int selectedIconIndex;
 
     public Vector3 originalScale;
+    public Vector3 originalPosition;
 
     public int x;
     public int y;
@@ -35,7 +37,9 @@ public class Tile : MonoBehaviour
     //Start is called before the first frame update
     void Start()
     {
+        originalPosition = transform.position;
         originalScale = transform.localScale;
+        initialSortingOrder = GetComponent<Renderer>().sortingOrder;
         selectedIcon = icons[Random.Range(0, icons.Length)];
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].sprite = selectedIcon.sprite;
         selectedIconIndex = Random.Range(0, icons.Length);
