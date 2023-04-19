@@ -38,8 +38,7 @@ public class TileBoard : MonoBehaviour
     }
 
     // Update is called once per frame
-
-    private void Update()
+    void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -56,8 +55,9 @@ public class TileBoard : MonoBehaviour
                 else
                 {
                     selectedObjects.Remove(selectedObject);
-                    selectedObject.GetComponent<Tile>().DecreaseScale(decreaseValue, decreaseDuration);
+                    //selectedObject.GetComponent<Tile>().DecreaseScale(decreaseValue, decreaseDuration);
                     selectedObject.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
+                    selectedObject.GetComponent<Renderer>().sortingOrder -= 1;
                     Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
                     foreach (Renderer ren in iconRenderers)
                     {
@@ -66,29 +66,15 @@ public class TileBoard : MonoBehaviour
                 }
                 if (selectedObjects.Count == 3)
                 {
-                    HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(selectedObjects);
-                    if (uniqueObjects.Count == 3)
-                    {
-                        DestroyObject();
-                        selectedObjects.Clear();
-                    }
-                    else
-                    {
-                        selectedObjects.Remove(selectedObject);
-                        selectedObject.GetComponent<Tile>().DecreaseScale(decreaseValue, decreaseDuration);
-                        selectedObject.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
-                        Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
-                        foreach (Renderer ren in iconRenderers)
-                        {
-                            ren.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
-                        }
-                    }
+                    DestroyObject();
+                    selectedObjects.Clear();
                 }
                 else
                 {
                     foreach (GameObject obj in selectedObjects)
                     {
                         obj.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
+                        //obj.GetComponent<Renderer>().sortingOrder += 1;
                         Renderer[] iconRenderers = obj.GetComponentsInChildren<Renderer>();
                         foreach (Renderer ren in iconRenderers)
                         {
@@ -130,7 +116,6 @@ public class TileBoard : MonoBehaviour
                         tilemap[emptyY, x].transform.position = pos;
                         emptyY++;
                         tilemap[emptyY - 1, x].name = x + "-" + (emptyY - 1);
-
                         Renderer tileRenderer = tilemap[emptyY - 1, x].GetComponent<Renderer>();
                         if (tileRenderer != null)
                         {
@@ -153,7 +138,6 @@ public class TileBoard : MonoBehaviour
                 GameObject newtile = Instantiate(tilePrefab, transform);
                 newtile.GetComponent<Tile>().SetPosition(x, emptyY);
                 tilemap[emptyY, x] = newtile.GetComponent<Tile>();
-                StartCoroutine(DropTileCoroutine(tilemap[emptyY, x], x, emptyY, dropSpeed));
                 newtile.name = x + "-" + emptyY;
                 Vector3 pos = newtile.transform.position;
                 pos.x = x * size - (size * col) / 2f + size / 2;
@@ -180,7 +164,7 @@ public class TileBoard : MonoBehaviour
                     ren.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
                     ren.sortingOrder = (row - emptyY - 1) * col + x;
                 }
-                
+                StartCoroutine(DropTileAboveCoroutine(tilemap[emptyY, x], x, emptyY, dropSpeed));
             }
         }
     }
@@ -197,8 +181,22 @@ public class TileBoard : MonoBehaviour
             yield return null;
         }
         tile.SetPosition(x, y);
-
     }
+
+    IEnumerator DropTileAboveCoroutine(Tile tile, int x, int y, float dropSpeed)
+    {
+        float startY = row * size - (size * row) / 2f + size / 2;
+        float endY = y * size - (size * row) / 2f + size / 2;
+        float t = 0.0f;
+        while (t < 1.0f)
+        {
+            t += Time.deltaTime * dropSpeed;
+            tile.transform.position = new Vector3(x * size - (size * col) / 2f + size / 2, Mathf.Lerp(startY, endY, t), 0.0f);
+            yield return null;
+        }
+        tile.SetPosition(x, y);
+    }
+
     void CreateTile()
     {
         tilemap = new Tile[row, col];
@@ -239,6 +237,7 @@ public class TileBoard : MonoBehaviour
         }
     }
 
+
     void DestroyObject()
     {
         bool isDifferent = false;
@@ -262,23 +261,18 @@ public class TileBoard : MonoBehaviour
             }
         }
 
-
         if (isDifferent)
         {
             foreach (GameObject obj in selectedObjects)
             {
                 Tile tile = obj.GetComponent<Tile>();
-                if (tile != null)
-                {
-                    obj.transform.localScale = tile.originalScale;
-
-                    SpriteRenderer spriteRenderer = obj.GetComponent<SpriteRenderer>();
-                    if (spriteRenderer != null)
-                    {
-                        spriteRenderer.sortingOrder = tile.initialSortingOrder;
-                    }
-                    tile.GetComponent<Renderer>().sortingLayerName = "Normal";
-                }
+                //if (tile != null)
+                //{
+                //    tile.GetComponent<Renderer>().sortingLayerName = "Normal";
+                //    tile.GetComponent<Renderer>().sortingOrder -= 1;
+                //}
+                tile.GetComponent<Renderer>().sortingLayerName = "Normal";
+                tile.GetComponent<Renderer>().sortingOrder -= 1;
             }
             selectedObjects.Clear();
         }
@@ -318,25 +312,6 @@ public class TileBoard : MonoBehaviour
             StartCoroutine(ScaleAndDestroyObjects(objectsToScaleAndDestroy));
         }
     }
-    
-
-    IEnumerator ScaleDownAndReset(GameObject obj, Vector3 originalScale)
-    {
-        float duration = 0.1f;
-        float timer = 0.0f;
-
-        Vector3 targetScale = originalScale;
-
-        while (timer < duration)
-        {
-            timer += Time.deltaTime;
-            obj.transform.localScale = Vector3.Lerp(obj.transform.localScale, targetScale, timer / duration);
-            yield return null;
-        }
-
-        obj.transform.localScale = originalScale;
-    }
-
 
     IEnumerator ScaleAndDestroyObjects(List<GameObject> objectsToScaleAndDestroy)
     {
