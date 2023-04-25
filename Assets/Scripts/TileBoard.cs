@@ -10,7 +10,8 @@ public class TileBoard : MonoBehaviour
     float size = 0.76f;
     int row = 10;
     int col = 6;
-    float dropSpeed = 0.01f;
+    int prevSortingOrder1 = -1;
+    //int prevSortingOrder2 = -1;
     string spriteName;
     public float increaseValue = 0.1f;
     public float increaseDuration = 4f;
@@ -18,7 +19,7 @@ public class TileBoard : MonoBehaviour
     public float decreaseDuration = 4f;
     string normalsortingLayerName = "Normal";
     string selectsortingLayerName = "Select";
-    
+
 
 
     public IconInfo[] iconInfoList;
@@ -33,11 +34,12 @@ public class TileBoard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
         CreateTile();
     }
 
     // Update is called once per frame
+    
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -47,39 +49,85 @@ public class TileBoard : MonoBehaviour
             if (Physics.Raycast(ray, out hit))
             {
                 GameObject selectedObject = hit.collider.gameObject;
+                Tile selectedTile = selectedObject.GetComponent<Tile>();
                 if (!selectedObjects.Contains(selectedObject))
                 {
                     selectedObjects.Add(selectedObject);
-                    selectedObject.GetComponent<Tile>().IncreaseScale(increaseValue, increaseDuration);
+                    selectedTile.IncreaseScale(increaseValue, increaseDuration);
+                    selectedTile.GetComponent<Renderer>().sortingLayerName = selectsortingLayerName;
+                    Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
+                    foreach (Renderer ren in iconRenderers)
+                    {
+                        ren.sortingLayerName = selectsortingLayerName;
+                        ren.sortingOrder += 1;
+                    }
                 }
                 else
                 {
                     selectedObjects.Remove(selectedObject);
-                    //selectedObject.GetComponent<Tile>().DecreaseScale(decreaseValue, decreaseDuration);
-                    selectedObject.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
-                    selectedObject.GetComponent<Renderer>().sortingOrder -= 1;
+                    selectedTile.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
+                    selectedTile.GetComponent<Renderer>().sortingOrder -= 1;
                     Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
                     foreach (Renderer ren in iconRenderers)
                     {
-                        ren.sortingLayerID = SortingLayer.NameToID(normalsortingLayerName);
+                        ren.sortingLayerName = normalsortingLayerName;
+                    }
+                    selectedTile.DecreaseScale(increaseValue, increaseDuration);
+                }
+
+                if (selectedObjects.Count == 2)
+                {
+                    if (selectedObjects[0] != selectedObjects[1])
+                    {
+                        Tile firstTile = selectedObjects[0].GetComponent<Tile>();
+                        firstTile.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
+                        firstTile.GetComponent<Renderer>().sortingOrder -= 1;
+
+                        selectedObjects.Remove(selectedObjects[0]);
+                    }
+                    else
+                    {
+                        selectedObjects.Add(selectedObject);
                     }
                 }
+
                 if (selectedObjects.Count == 3)
                 {
-                    DestroyObject();
-                    selectedObjects.Clear();
-                }
-                else
-                {
-                    foreach (GameObject obj in selectedObjects)
+                    int index1 = selectedObjects[0].GetComponent<Tile>().index;
+                    int index2 = selectedObjects[1].GetComponent<Tile>().index;
+                    int index3 = selectedObjects[2].GetComponent<Tile>().index;
+
+                    if (index1 != index2)
                     {
-                        obj.GetComponent<Renderer>().sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
-                        //obj.GetComponent<Renderer>().sortingOrder += 1;
-                        Renderer[] iconRenderers = obj.GetComponentsInChildren<Renderer>();
-                        foreach (Renderer ren in iconRenderers)
+                        GameObject object1 = selectedObjects[0];
+                        object1.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
+                        object1.GetComponent<Tile>().DecreaseScale(increaseValue, increaseDuration);
+                        object1.GetComponent<Renderer>().sortingOrder--;
+                        selectedObjects.Remove(object1);
+                    }
+
+                    if (index1 == index2 && index2 == index3)
+                    {
+                        DestroyObject();
+                        selectedObjects.Clear();
+                    }
+                    else
+                    {
+                        foreach (GameObject obj in selectedObjects)
                         {
-                            ren.sortingLayerID = SortingLayer.NameToID(selectsortingLayerName);
-                            ren.sortingOrder += 1;
+                            Renderer[] iconRenderers = obj.GetComponentsInChildren<Renderer>();
+                            foreach (Renderer ren in iconRenderers)
+                            {
+                                if (obj == selectedObject)
+                                {
+                                    prevSortingOrder1 = ren.sortingOrder;
+                                }
+                                else if (selectedObjects.Count == 3 && ren.sortingOrder == prevSortingOrder1 + 2)
+                                {
+                                    ren.sortingLayerName = selectsortingLayerName;
+                                    ren.sortingOrder += 1;
+                                }
+                            }
                         }
                     }
                 }
@@ -87,10 +135,12 @@ public class TileBoard : MonoBehaviour
         }
         DropTile();
     }
+   
 
+    
     void DropTile()
     {
-        float dropSpeed = 5.0f;
+        float dropSpeed = 4.0f;
         for (int x = 0; x < col; x++)
         {
             int emptyY = -1;
@@ -277,7 +327,7 @@ public class TileBoard : MonoBehaviour
             selectedObjects.Clear();
         }
 
-        //List<GameObject> objectsToScaleAndDestroy = new List<GameObject>();
+        //List<GameObject> objectsToDestroy = new List<GameObject>();
         List<Vector3> originalScales = new List<Vector3>();
         foreach (GameObject obj in objectsToScaleAndDestroy)
         {
@@ -349,9 +399,6 @@ public class TileBoard : MonoBehaviour
             }
         }
     }
-
-    
-
 }
 
 

@@ -71,7 +71,7 @@ public class Tile : MonoBehaviour
         {
             return;
         }
-        transform.DOScale(transform.localScale + Vector3.one * 0.05f * inscreaseValue, increaseDuration)
+        transform.DOScale(transform.localScale + Vector3.one * 0.08f * inscreaseValue, increaseDuration)
             .SetEase(Ease.InOutSine)
             .OnComplete(() =>
             {
@@ -107,15 +107,12 @@ public class Tile : MonoBehaviour
 
     IEnumerator GradualScale(Vector3 targetScale, float duration)
     {
-        // Calculate the step size for each frame
         float step = (originalScale.magnitude / targetScale.magnitude - 1f) / duration;
 
-        // Decrease the scale gradually
         while (transform.localScale.magnitude > targetScale.magnitude)
         {
             transform.localScale -= Vector3.one * step * Time.deltaTime;
 
-            // Make sure the scale doesn't go below the target scale
             if (transform.localScale.magnitude < targetScale.magnitude)
             {
                 transform.localScale = targetScale;
