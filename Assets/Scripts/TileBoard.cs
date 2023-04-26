@@ -12,7 +12,7 @@ public class TileBoard : MonoBehaviour
     int col = 6;
     int prevSortingOrder1 = -1;
     string spriteName;
-    public float increaseValue = 10f;
+    public float increaseValue = 0.01f;
     public float increaseDuration = 0.05f;
     public float decreaseValue = 0.001f;
     public float decreaseDuration = 4f;
@@ -58,8 +58,7 @@ public class TileBoard : MonoBehaviour
                     {
                         ren.sortingLayerName = selectsortingLayerName;
                         ren.sortingOrder += 1;
-                        ren.transform.DOScale(ren.transform.localScale + Vector3.one * 0.1f *  increaseValue, increaseDuration)
-            .SetEase(Ease.OutCubic);
+                        
                     }
                 }
                 else
@@ -71,10 +70,9 @@ public class TileBoard : MonoBehaviour
                     foreach (Renderer ren in iconRenderers)
                     {
                         ren.sortingLayerName = normalsortingLayerName;
-                        ren.transform.DOScale(ren.transform.localScale - Vector3.one * 0.1f * increaseValue, increaseDuration)
-            .SetEase(Ease.OutCubic);
+                        
                     }
-                    selectedTile.DecreaseScale(increaseValue, increaseDuration);
+                    selectedTile.DecreaseScale(decreaseValue, decreaseDuration);
                 }
                 
                 if (selectedObjects.Count == 2)

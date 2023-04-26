@@ -79,6 +79,24 @@ public class Tile : MonoBehaviour
         return null;
     }
 
+    public void IncreaseScale(float inscreaseValue, float increaseDuration)
+    {
+        //transform.DOScale(transform.localScale + new Vector3(inscreaseValue, inscreaseValue, inscreaseValue), increaseDuration);
+        if (transform == null)
+        {
+            return;
+        }
+        transform.DOScale(transform.localScale + Vector3.one * 0.08f * inscreaseValue, increaseDuration)
+            .SetEase(Ease.InOutSine)
+            .OnComplete(() =>
+            {
+                if (transform != null)
+                {
+                    transform.DOScale(Vector3.one * 0.42f, increaseDuration);
+                }
+            });
+    }
+
     public void DecreaseScale(float scaleValue, float duration)
     {
         // Calculate the target scale
