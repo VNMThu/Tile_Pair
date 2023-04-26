@@ -64,23 +64,6 @@ public class Tile : MonoBehaviour
         gameObject.GetComponentsInChildren<SpriteRenderer>()[1].sprite = selectedIcon.sprite;
     }
     
-    public void IncreaseScale(float inscreaseValue, float increaseDuration)
-    {
-        //transform.DOScale(transform.localScale + new Vector3(inscreaseValue, inscreaseValue, inscreaseValue), increaseDuration);
-        if (transform == null)
-        {
-            return;
-        }
-        transform.DOScale(transform.localScale + Vector3.one * 0.08f * inscreaseValue, increaseDuration)
-            .SetEase(Ease.InOutSine)
-            .OnComplete(() =>
-            {
-                if (transform != null)
-                {
-                    transform.DOScale(Vector3.one*0.42f, increaseDuration);
-                }
-            });
-    }
 
     public GameObject GetAboveTile()
     {

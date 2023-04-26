@@ -11,10 +11,9 @@ public class TileBoard : MonoBehaviour
     int row = 10;
     int col = 6;
     int prevSortingOrder1 = -1;
-    //int prevSortingOrder2 = -1;
     string spriteName;
-    public float increaseValue = 0.1f;
-    public float increaseDuration = 4f;
+    public float increaseValue = 10f;
+    public float increaseDuration = 0.05f;
     public float decreaseValue = 0.001f;
     public float decreaseDuration = 4f;
     string normalsortingLayerName = "Normal";
@@ -34,7 +33,6 @@ public class TileBoard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
         CreateTile();
     }
 
@@ -53,13 +51,15 @@ public class TileBoard : MonoBehaviour
                 if (!selectedObjects.Contains(selectedObject))
                 {
                     selectedObjects.Add(selectedObject);
-                    selectedTile.IncreaseScale(increaseValue, increaseDuration);
+                    
                     selectedTile.GetComponent<Renderer>().sortingLayerName = selectsortingLayerName;
                     Renderer[] iconRenderers = selectedObject.GetComponentsInChildren<Renderer>();
                     foreach (Renderer ren in iconRenderers)
                     {
                         ren.sortingLayerName = selectsortingLayerName;
                         ren.sortingOrder += 1;
+                        ren.transform.DOScale(ren.transform.localScale + Vector3.one * 0.1f *  increaseValue, increaseDuration)
+            .SetEase(Ease.OutCubic);
                     }
                 }
                 else
@@ -71,13 +71,17 @@ public class TileBoard : MonoBehaviour
                     foreach (Renderer ren in iconRenderers)
                     {
                         ren.sortingLayerName = normalsortingLayerName;
+                        ren.transform.DOScale(ren.transform.localScale - Vector3.one * 0.1f * increaseValue, increaseDuration)
+            .SetEase(Ease.OutCubic);
                     }
                     selectedTile.DecreaseScale(increaseValue, increaseDuration);
                 }
-
+                
                 if (selectedObjects.Count == 2)
                 {
-                    if (selectedObjects[0] != selectedObjects[1])
+                    int index1 = selectedObjects[0].GetComponent<Tile>().selectedIcon.index;
+                    int index2 = selectedObjects[1].GetComponent<Tile>().selectedIcon.index;
+                    if (index1 != index2)
                     {
                         Tile firstTile = selectedObjects[0].GetComponent<Tile>();
                         firstTile.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
@@ -85,31 +89,41 @@ public class TileBoard : MonoBehaviour
 
                         selectedObjects.Remove(selectedObjects[0]);
                     }
-                    else
-                    {
-                        selectedObjects.Add(selectedObject);
-                    }
                 }
-
                 if (selectedObjects.Count == 3)
                 {
-                    int index1 = selectedObjects[0].GetComponent<Tile>().index;
-                    int index2 = selectedObjects[1].GetComponent<Tile>().index;
-                    int index3 = selectedObjects[2].GetComponent<Tile>().index;
-
-                    if (index1 != index2)
+                    int index1 = selectedObjects[0].GetComponent<Tile>().selectedIcon.index;
+                    int index2 = selectedObjects[1].GetComponent<Tile>().selectedIcon.index;
+                    int index3 = selectedObjects[2].GetComponent<Tile>().selectedIcon.index;
+                    if (index1 == index2 && index3 != index2 && index3 != index1)
                     {
-                        GameObject object1 = selectedObjects[0];
-                        object1.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
-                        object1.GetComponent<Tile>().DecreaseScale(increaseValue, increaseDuration);
-                        object1.GetComponent<Renderer>().sortingOrder--;
-                        selectedObjects.Remove(object1);
+                        Tile firstTile = selectedObjects[0].GetComponent<Tile>();
+                        Tile secondTile = selectedObjects[1].GetComponent<Tile>();
+                        Tile thirdTile = selectedObjects[2].GetComponent<Tile>();
+                        firstTile.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
+                        firstTile.GetComponent<Renderer>().sortingOrder -= 1;
+                        secondTile.GetComponent<Renderer>().sortingLayerName = normalsortingLayerName;
+                        secondTile.GetComponent<Renderer>().sortingOrder -= 1;
+                        selectedObjects.Remove(secondTile.gameObject);
+                        selectedObjects.Remove(firstTile.gameObject);
                     }
 
-                    if (index1 == index2 && index2 == index3)
+                    else if (index1 == index2 && index2 == index3)
                     {
-                        DestroyObject();
-                        selectedObjects.Clear();
+                        int count = 0;
+                        foreach (GameObject obj in selectedObjects)
+                        {
+                            Tile tile = obj.GetComponent<Tile>();
+                            if (tile.selectedIcon.index == index1)
+                            {
+                                count++;
+                            }
+                        }
+                        if (count == 3)
+                        {
+                            DestroyObject();
+                            selectedObjects.Clear();
+                        }
                     }
                     else
                     {
@@ -316,18 +330,12 @@ public class TileBoard : MonoBehaviour
             foreach (GameObject obj in selectedObjects)
             {
                 Tile tile = obj.GetComponent<Tile>();
-                //if (tile != null)
-                //{
-                //    tile.GetComponent<Renderer>().sortingLayerName = "Normal";
-                //    tile.GetComponent<Renderer>().sortingOrder -= 1;
-                //}
                 tile.GetComponent<Renderer>().sortingLayerName = "Normal";
                 tile.GetComponent<Renderer>().sortingOrder -= 1;
             }
             selectedObjects.Clear();
         }
 
-        //List<GameObject> objectsToDestroy = new List<GameObject>();
         List<Vector3> originalScales = new List<Vector3>();
         foreach (GameObject obj in objectsToScaleAndDestroy)
         {
